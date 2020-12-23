@@ -1,0 +1,30 @@
+<!-- websockets.html -->
+<button onclick="stop()">STOP</button>
+<pre id="output"></pre>
+<script src="recorder.wav.min.js"></script>
+<script src="recorder-core.js"></script>
+<script>
+    var webSocket = new WebSocket("ws://localhost:1234/ws");
+    webSocket.binaryType = 'arraybuffer';
+
+    var chunkInfo;
+    var rec = Recorder({
+        type: 'wav', bitRate: 16, sampleRate: 16000, bufferSize: 4096, onProcess:
+            function (buffers, powerLevel, bufferDuration, bufferSampleRate) {
+                chunkInfo = Recorder.SampleData(buffers, bufferSampleRate, rec.set.sampleRate, chunkInfo);
+                webSocket.send(chunkInfo.data);
+                console.log(chunkInfo.data)
+
+            },
+    }
+    );
+    //开始录音
+    rec.open(function () {
+        rec.start();
+    });
+
+    function stop() {
+        rec.stop();
+        webSocket.close();
+    }
+</script>
