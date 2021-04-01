@@ -7,7 +7,10 @@ import (
 	wave "github.com/zenwerk/go-wave"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
+	"time"
 )
 
 var upgrader = websocket.Upgrader{
@@ -16,12 +19,15 @@ var upgrader = websocket.Upgrader{
 	},
 } // use default options
 
-func checkFileIsExist(filename string) bool {
-	exist := true
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		exist = false
+func checkFileIsExist(path string) bool {
+	_, err := os.Stat(path) //os.Stat获取文件信息
+	if err != nil {
+		if os.IsExist(err) {
+			return true
+		}
+		return false
 	}
-	return exist
+	return true
 }
 
 func echo(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +38,24 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filename := "./test.wav"
+	var uid string
+	params, _ := url.ParseQuery(r.URL.RawQuery)
+	if len(params) == 0 {
+		logger.Error.Println("no userid")
+		return
+	} else {
+		uid = params["uid"][0]
+	}
+
+	udirPath := path.Join(config.G_wav_dir, uid)
+	if !checkFileIsExist(udirPath) {
+		err := os.MkdirAll(udirPath, os.ModePerm)
+		if err != nil {
+			logger.Error.Println("udir mkdir failed :" + err.Error())
+			return
+		}
+	}
+	filename := path.Join(udirPath, time.Now().Format("2006-01-02_15:04:05")+".wav")
 	f, err := os.Create(filename)
 	defer f.Close()
 
@@ -83,7 +106,7 @@ func main() {
 	log.SetFlags(0)
 
 	if !checkFileIsExist(config.G_wav_dir) {
-		err := os.MkdirAll(config.G_wav_dir, 0666)
+		err := os.MkdirAll(config.G_wav_dir, os.ModePerm)
 		if err != nil {
 			logger.Error.Println("wav mkdir failed :" + err.Error())
 			return

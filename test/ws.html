@@ -4,7 +4,7 @@
 <script src="recorder.wav.min.js"></script>
 <script src="recorder-core.js"></script>
 <script>
-    var webSocket = new WebSocket("ws://localhost:1234/ws");
+    var webSocket = new WebSocket("ws://localhost:1234/ws?uid=test");
     webSocket.binaryType = 'arraybuffer';
 
     var chunkInfo;

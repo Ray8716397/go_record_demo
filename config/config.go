@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	G_host    string = "localhost:1234"
+	G_host    string = "0.0.0.0:8000"
 	G_wav_dir string = "wav"
 )
 
