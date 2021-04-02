@@ -3,13 +3,16 @@ package main
 import (
 	"./config"
 	"./logger"
+	"fmt"
 	"github.com/gorilla/websocket"
 	wave "github.com/zenwerk/go-wave"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"time"
 )
 
@@ -97,9 +100,29 @@ func echo(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println("websocket write: " + err.Error())
 			break
 		}
-
 	}
 
+	absFp, err := filepath.Abs(filename)
+	dbFp := "/home/ray/Workspace/project/asr/src/dictation-kit/test.db"
+	if checkFileIsExist(dbFp) { //如果文件存在
+		f, err = os.OpenFile(dbFp, os.O_WRONLY, os.ModePerm) //打开文件
+		fmt.Println("文件存在")
+	} else {
+		f, err = os.Create(dbFp) //创建文件
+		fmt.Println("文件不存在")
+	}
+	if err != nil {
+		logger.Error.Println("open file error: " + err.Error())
+		return
+	}
+	n3, err := f.WriteString(absFp) //写入文件(字节数组)
+	fmt.Printf("写入 %d 个字节n", n3)
+	f.Sync()
+	if err != nil {
+		logger.Error.Println("write file error: " + err.Error())
+		return
+	}
+	exec.Command("/bin/bash", "-c", `cd /home/ray/Workspace/project/asr/src/dictation-kit && ./run-linux-dnn.sh`).Run()
 }
 
 func main() {
