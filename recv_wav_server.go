@@ -45,6 +45,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		uid = params["uid"][0]
+		logger.Info.Println(uid + " ws connected")
 	}
 
 	udirPath := path.Join(config.G_wav_dir, uid)
